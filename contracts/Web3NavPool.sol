@@ -7,22 +7,24 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 
 contract Web3NavPool {
-    uint public immutable STAKING_LIMIT;
-    uint public immutable EXCHANGE_RATE;
+    uint public immutable STAKE_LIMIT;
     address public admin;
-    uint public totalSupply;
-    uint public totalStaking;
+    uint public totalStake;
     
 
-    mapping(address => uint) userStakingInfo;
+    mapping(address => uint) userStakeInfo;
     mapping(address => uint) web3NavAmt;
 
-    event Staking(address indexed _addr, uint _amt);
-    event CancelStaking(address indexed _addr, uint _amt);
+    event Stake(address indexed _addr, uint _amt);
+    event UnStake(address indexed _addr, uint _amt);
 
-    constructor(uint _stakingLimit, uint _exchangeRate) {
-        STAKING_LIMIT = _stakingLimit;
-        EXCHANGE_RATE = _exchangeRate;
+    struct Read {
+        uint readNum;
+        uint mintedReadNum;
+    }
+
+    constructor(uint _stakeLimit) {
+        STAKE_LIMIT = _stakeLimit;
         admin = msg.sender;
     }
 
@@ -32,43 +34,35 @@ contract Web3NavPool {
     }
 
 
-    function _isCompleteStaking(address addr) internal view returns (bool) {
-        return userStakingInfo[addr] >= STAKING_LIMIT;
+    function _isCompleteStake(address addr) internal view returns (bool) {
+        return userStakeInfo[addr] >= STAKE_LIMIT;
     }
 
-    function staking () payable public {
+    function stake() payable public {
         // 参数校验
-        // require(msg.value >= STAKING_LIMIT, "staking amount not enough!");
-        userStakingInfo[msg.sender] += msg.value;
+        require(msg.value >= STAKE_LIMIT, "stake amount not enough!");
+        userStakeInfo[msg.sender] += msg.value;
+        totalStake += msg.value;
 
-        totalStaking += msg.value;
-        uint mintWeb3NavAmt = msg.value * EXCHANGE_RATE;
-        web3NavAmt[msg.sender] += mintWeb3NavAmt;
-        totalSupply += mintWeb3NavAmt;
-
-        emit Staking(msg.sender, msg.value);
+        emit Stake(msg.sender, msg.value);
     }
 
-    function cancelStaking() external {
-        uint etherAmt = userStakingInfo[msg.sender];
-        userStakingInfo[msg.sender] = 0;
+    function unStake() external {
+        uint etherAmt = userStakeInfo[msg.sender];
+        userStakeInfo[msg.sender] = 0;
+        totalStake -= etherAmt;
         require(etherAmt > 0, "nothing to withdraw");
         
-        uint mintWeb3NavAmt = etherAmt * EXCHANGE_RATE;
-        web3NavAmt[msg.sender] -= mintWeb3NavAmt;
-        totalSupply -= mintWeb3NavAmt;
-        totalStaking -= etherAmt;
-
         (bool succeed,) = msg.sender.call{value: etherAmt}("");
         require(succeed, "cancelStaking failed!");
 
-        console.log("rewards:", etherAmt);
+        console.log("unStake:", etherAmt);
 
-        emit CancelStaking(msg.sender, etherAmt);
+        emit UnStake(msg.sender, etherAmt);
     }
 
     function getStakingAmt() external view returns (uint) {
-        return userStakingInfo[msg.sender];
+        return userStakeInfo[msg.sender];
     }
 
 }
