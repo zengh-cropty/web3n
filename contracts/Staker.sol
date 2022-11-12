@@ -16,7 +16,7 @@ contract Staker {
     mapping(address => bool) public blackList;
 
     // 质押完成门槛
-    uint public constant threshold = 1 ether;
+    uint public constant threshold = 1 gwei;
 
     uint public totalStackAmt;
 
