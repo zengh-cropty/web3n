@@ -17,7 +17,7 @@ contract Nav is ERC20, AccessControl, Ownable {
         _mint(to, amount);
     }
 
-    function grantRole(address _user) public Ownable {
+    function grantRole(address _user) public onlyOwner {
         _grantRole(MINTER_ROLE, _user);
     }
 
