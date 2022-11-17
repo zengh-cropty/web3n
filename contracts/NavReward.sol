@@ -48,12 +48,14 @@ contract NavReward is ChainlinkClient, ConfirmedOwner {
         emit RequestReadNum(_requestId, _volume);
 
         require(_volume >= 0, "readNum not >= 0");
+        require(_volume >= hasMintRedNum[recipient[_requestId]], "readNum error");
+        
         uint availableMintReadNum = _volume - hasMintRedNum[recipient[_requestId]];
-        require(availableMintReadNum >= readNumToNavRate, "availableMintReadNum not >= readNumToNavRate");
         uint mintCoinNum = availableMintReadNum / readNumToNavRate;
+        require(availableMintReadNum >= readNumToNavRate, "availableMintReadNum not >= readNumToNavRate");
         hasMintRedNum[recipient[_requestId]] += mintCoinNum * readNumToNavRate;
 
-        ICounter(contractAdd).mint(recipient[_requestId], mintCoinNum * LINK_DIVISIBILITY);
+        ICounter(contractAdd).mint(recipient[_requestId], mintCoinNum);
     }
 }
 
