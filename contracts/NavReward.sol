@@ -18,7 +18,7 @@ contract NavReward is ChainlinkClient, ConfirmedOwner {
     address public contractAdd;
     uint public readNumToNavRate;
     
-    mapping(bytes32 => address) public recipient;
+    mapping(bytes32 => address) private recipient;
     mapping(address => uint) public hasMintRedNum;
 
     event RequestReadNum(bytes32 indexed requestId, uint256 volume);
